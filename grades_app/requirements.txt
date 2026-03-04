@@ -4,5 +4,3 @@ matplotlib
 seaborn
 plotly
 openpyxl
-hashlib
-json
