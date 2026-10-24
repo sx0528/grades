@@ -30,7 +30,11 @@ def _grades_path(teacher_key):
 def _load_grades(teacher_key):
     path = _grades_path(teacher_key)
     if os.path.exists(path):
-        df = pd.read_csv(path)
+        # 姓名强制按字符串读：纯数字姓名（如班级学号）否则会变成 int 导致拼接/筛选异常
+        df = pd.read_csv(path, dtype={"姓名": str})
+        if "姓名" in df.columns:
+            df["姓名"] = df["姓名"].fillna("").astype(str).str.strip()
+            df = df[df["姓名"] != ""]
         if "考试时间" in df.columns:
             df["考试时间"] = parse_dates(df["考试时间"])
         return df
