@@ -1,8 +1,10 @@
 # 🎯 个人高考成绩追踪系统
 
-基于 Python + Streamlit 的本地高考成绩追踪与分析工具，支持新高考"3+3"与"3+1+2"两种模式，数据全部保存在本地，适合个人使用。
+基于 Python + Streamlit 的本地高考成绩追踪与分析工具，支持新高考"3+3"与"3+1+2"两种模式，数据全部保存在本地。提供**学生端**（个人成绩追踪）与**教师端**（班级成绩一键导入与分析）双模式，并打包为 Windows 桌面程序。
 
 ## 功能
+
+### 学生端
 
 - **用户系统** — 姓名注册、密码登录（PBKDF2-SHA256 加盐哈希存储）
 - **选科配置** — 按高考模式选择科目，仅需设置一次
@@ -15,21 +17,45 @@
 - **趋势图表** — 总分趋势、排名趋势（支持按考试类型筛选）
 - **数据管理** — 表格勾选删除、Excel/CSV 导入导出、数据完整性自动检查
 
+### 教师端
+
+- **班级设置** — 班级名称、统计科目、学生名单（核对未交成绩）
+- **批量导入** — 全班成绩 Excel/CSV 一键导入：科目列自动识别、缺"总分"自动求和、
+  非数字分数按缺考处理、同学生同日期重复导入自动覆盖、提供导入模板
+- **班级分析** — 总分排名、各科平均分/及格率/优秀率（语数英按 150、其余按 100）、
+  分数分布、平均分趋势、进退步榜
+- **学生报告** — 单个学生环比卡片、各科趋势、雷达图（vs 班级平均）、
+  班级对比表（各科差值+名次）、个人成绩单导出
+- **单条录入** — 个别学生补录
+
+### 桌面版
+
+- `run_app.py` 为 PyInstaller 打包入口，`packaging/GradeTracker.iss` 为 Inno Setup 安装包脚本
+- 打包后无需安装 Python，双击启动并自动打开浏览器；数据保存在程序目录旁
+
+## 测试
+
+```bash
+# 端到端功能测试（学生端 + 教师端，32 项，隔离目录运行）
+python grades_app/tests_functional.py
+```
+
 ## 技术栈
 
-- Python / Streamlit / Pandas / Plotly
+- Python / Streamlit / Pandas / Plotly / openpyxl
 - 本地文件存储（JSON 配置 + CSV 数据）
-- AI 辅助开发，Git 版本控制
+- 测试：Streamlit AppTest 端到端
+- 打包：PyInstaller + Inno Setup
 
 ## 运行方式
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/your-username/grade-tracker.git
-cd grade-tracker
+git clone https://github.com/sx0528/grades.git
+cd grades
 
 # 2. 安装依赖
-pip install -r requirements.txt
+pip install -r grades_app/requirements.txt
 
 # 3. 启动应用
 streamlit run grades_app/main.py
@@ -37,12 +63,16 @@ streamlit run grades_app/main.py
 
 ## 数据说明
 
-所有数据保存在 `grades_app/user_data/` 下：
+学生数据保存在 `grades_app/user_data/` 下：
 
 - `users_config.json` — 用户账户、选科、目标分、人数基准等配置
 - `<用户名>_<模式>.csv` — 各用户成绩明细
 
-该目录即数据库，定期用"导出 Excel"功能备份即可。
+教师数据保存在 `grades_app/teacher_data/<教师名>_教师/` 下：
+
+- `grades.csv` — 全班成绩明细（含各场次）
+
+以上目录即数据库，定期用"导出 Excel"功能备份即可（卸载/重装程序不会清除数据）。
 
 ## 说明
 
