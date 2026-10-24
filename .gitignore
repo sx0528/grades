@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# WorkBuddy 工作区数据
+.workbuddy/
+
+# 用户运行时数据（密码哈希、成绩明细），请勿提交
+grades_app/user_data/users_config.json
+grades_app/user_data/*.csv

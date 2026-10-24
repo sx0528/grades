@@ -1,78 +1,53 @@
-# \# Grade Tracker
+# 🎯 个人高考成绩追踪系统
 
-# 
+基于 Python + Streamlit 的本地高考成绩追踪与分析工具，支持新高考"3+3"与"3+1+2"两种模式，数据全部保存在本地，适合个人使用。
 
-# A simple grade tracking and management tool built with Python. This project was developed during high school to help monitor academic performance and explore basic data management.
+## 功能
 
-# 
+- **用户系统** — 姓名注册、密码登录（PBKDF2-SHA256 加盐哈希存储）
+- **选科配置** — 按高考模式选择科目，仅需设置一次
+- **成绩录入** — 语数英、选科（原始分/赋分后）、总分、班级/年级排名、考试类型
+- **环比分析** — 与上次考试对比总分与排名变化、单科增减摘要
+- **学科雷达图** — 最近一次 vs 历次平均 vs 目标分
+- **赋分等级** — 按官方赋分区间映射 A~E 等级并追踪升降
+- **目标与差距** — 设置目标总分/各科目标分，自动计算差距
+- **位次百分位** — 配置班级/年级人数，换算"前 X%"并绘制趋势
+- **趋势图表** — 总分趋势、排名趋势（支持按考试类型筛选）
+- **数据管理** — 表格勾选删除、Excel/CSV 导入导出、数据完整性自动检查
 
-# \## Features
+## 技术栈
 
-# 
+- Python / Streamlit / Pandas / Plotly
+- 本地文件存储（JSON 配置 + CSV 数据）
+- AI 辅助开发，Git 版本控制
 
-# \- Add, edit, and delete grade records
+## 运行方式
 
-# \- Query grades by subject or date
+```bash
+# 1. 克隆仓库
+git clone https://github.com/your-username/grade-tracker.git
+cd grade-tracker
 
-# \- View basic statistics such as average score
+# 2. 安装依赖
+pip install -r requirements.txt
 
-# \- Local data storage for personal use
+# 3. 启动应用
+streamlit run grades_app/main.py
+```
 
-# 
+## 数据说明
 
-# \## Tech Stack
+所有数据保存在 `grades_app/user_data/` 下：
 
-# 
+- `users_config.json` — 用户账户、选科、目标分、人数基准等配置
+- `<用户名>_<模式>.csv` — 各用户成绩明细
 
-# \- Python
+该目录即数据库，定期用"导出 Excel"功能备份即可。
 
-# \- AI-assisted development
+## 说明
 
-# \- Git \& GitHub for version control
+本项目为高中时期开发的学习型项目，用于探索 Python 编程与 AI 辅助开发，仅供本地测试使用。欢迎建议与反馈。
 
-# 
+## 作者
 
-# \## How to Run
-
-# 
-
-# 1\. Clone the repository:
-
-# &#x20;  bash
-
-# &#x20;  git clone https://github.com/your-username/grade-tracker.git
-
-# &#x20;  2. Navigate to the project folder:
-
-# &#x20;  bash
-
-# &#x20;  cd grade-tracker
-
-# &#x20;  3. Run the script:
-
-# &#x20;  bash
-
-# &#x20;  python main.py
-
-# &#x20;  
-
-# \## Notes
-
-# 
-
-# This project is a prototype developed for local testing. It was created as a personal learning project to explore Python programming and AI-assisted development.
-
-# 
-
-# \## Author
-
-# 
-
-# Xin Song
-
-
-
-# 
-
-# This is a learning project. Contributions and feedback are welcome.
-
+Xin Song
