@@ -1,5 +1,16 @@
 # 🎯 个人高考成绩追踪系统
 
+## ⬇️ 下载（无需懂编程）
+
+前往 [Releases 页面](https://github.com/sx0528/grades/releases/latest) 下载：
+
+| 文件 | 适合谁 | 用法 |
+|------|--------|------|
+| `GradeTracker-setup-x.x.x.exe` | 普通用户 | 双击安装，桌面出现快捷方式 |
+| `GradeTracker-win64.zip` | 免安装用户 | 右键解压后双击 `GradeTracker.exe` |
+
+首次运行若提示「Windows 已保护你的电脑」，点「更多信息 → 仍要运行」即可。
+
 基于 Python + Streamlit 的本地高考成绩追踪与分析工具，支持新高考"3+3"与"3+1+2"两种模式，数据全部保存在本地。提供**学生端**（个人成绩追踪）与**教师端**（班级成绩一键导入与分析）双模式，并打包为 Windows 桌面程序。
 
 ## 功能
