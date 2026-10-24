@@ -2,6 +2,10 @@
 __pycache__/
 *.pyc
 
+# 打包产物
+build/
+dist/
+
 # WorkBuddy 工作区数据
 .workbuddy/
 

@@ -1,13 +1,14 @@
 import streamlit as st
 import pandas as pd
 import os
-import hashlib
-import hmac
 import json
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
+from common import (CONFIG_FILE_PATH, load_config, save_config,
+                    get_password_hash, verify_password, upgrade_password_hash,
+                    parse_dates, GRADE_ICONS, score_to_grade)
 # === 1. 配置与初始化 ===
 USER_DATA_DIR = "user_data"
 CONFIG_FILE_PATH = os.path.join(USER_DATA_DIR, "users_config.json")
@@ -21,42 +22,6 @@ if not os.path.exists(CONFIG_FILE_PATH):
 st.set_page_config(page_title="🔐 高考成绩追踪器", layout="wide")
 st.title("🎯 个人高考成绩追踪系统")
 # === 2. 辅助函数 ===
-PBKDF2_ITERATIONS = 260_000
-
-def get_password_hash(password):
-    """PBKDF2-SHA256 + 随机盐，格式：pbkdf2_sha256$迭代次数$盐$哈希"""
-    salt = os.urandom(16)
-    dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, PBKDF2_ITERATIONS)
-    return f"pbkdf2_sha256${PBKDF2_ITERATIONS}${salt.hex()}${dk.hex()}"
-
-def verify_password(stored_hash, provided_password):
-    """兼容旧的无盐 SHA256 哈希；返回 (是否通过, 是否为旧格式)"""
-    if stored_hash.startswith("pbkdf2_sha256$"):
-        try:
-            _, iters, salt_hex, dk_hex = stored_hash.split("$")
-            dk = hashlib.pbkdf2_hmac(
-                "sha256", provided_password.encode(), bytes.fromhex(salt_hex), int(iters))
-            return hmac.compare_digest(dk.hex(), dk_hex), False
-        except (ValueError, TypeError):
-            return False, False
-    # 旧格式：无盐 SHA256
-    legacy_ok = hmac.compare_digest(
-        stored_hash, hashlib.sha256(provided_password.encode()).hexdigest())
-    return legacy_ok, legacy_ok  # 旧格式且验证通过 → 调用方应升级哈希
-
-def upgrade_password_hash(user_key, new_password):
-    """将旧格式哈希升级为 PBKDF2"""
-    config = load_config()
-    if user_key in config["users"]:
-        config["users"][user_key]["password_hash"] = get_password_hash(new_password)
-        save_config(config)
-
-def load_config():
-    with open(CONFIG_FILE_PATH, 'r') as f:
-        return json.load(f)
-def save_config(config):
-    with open(CONFIG_FILE_PATH, 'w') as f:
-        json.dump(config, f, indent=4)
 def get_user_data_path():
     return os.path.join(USER_DATA_DIR, f"{st.session_state['user_key']}.csv")
 def load_user_data():
@@ -78,26 +43,6 @@ def get_subject_cols(subject_config):
         result = [(subject_config["primary"], subject_config["primary"])]
         result += [(sub, f"{sub}_赋分") for sub in subject_config["secondary"]]
     return result
-
-def parse_dates(series):
-    """宽容解析日期：兼容 ISO（2026-10-24）与斜杠（2026/10/24）格式"""
-    dt = pd.to_datetime(series, errors="coerce")
-    mask = dt.isna() & series.notna()
-    if mask.any():
-        dt.loc[mask] = pd.to_datetime(series[mask], format="%Y/%m/%d", errors="coerce")
-    return dt
-
-GRADE_BANDS = [(86, 100, "A"), (71, 85, "B"), (56, 70, "C"), (41, 55, "D"), (30, 40, "E")]
-GRADE_ICONS = {"A": "🟢", "B": "🔵", "C": "🟡", "D": "🟠", "E": "🔴"}
-
-def score_to_grade(score):
-    """3+1+2 赋分等级映射 (A~E)，返回空串表示无法映射"""
-    if pd.isna(score):
-        return ""
-    for lo, hi, g in GRADE_BANDS:
-        if lo <= score <= hi:
-            return g
-    return ""
 
 def check_data_quality(df, subject_cols):
     """数据完整性检查，返回问题描述列表"""
@@ -129,11 +74,19 @@ def authentication():
     if 'temp_name' not in st.session_state:
         st.session_state['temp_name'] = ""
     user_name = st.sidebar.text_input("👤 请输入姓名", value=st.session_state['temp_name'])
-    exam_mode = st.sidebar.selectbox("📚 选择高考模式", ["", "3+3", "3+1+2"], index=0)
-    if not user_name or not exam_mode:
-        st.info("请在左侧边栏填写姓名并选择高考模式。")
-        st.stop()
-    user_key = f"{user_name}_{exam_mode}"
+    role = st.sidebar.radio("身份", ["学生", "教师"], key="role")
+    if role == "学生":
+        exam_mode = st.sidebar.selectbox("📚 选择高考模式", ["", "3+3", "3+1+2"], index=0)
+        if not user_name or not exam_mode:
+            st.info("请在左侧边栏填写姓名并选择高考模式。")
+            st.stop()
+        user_key = f"{user_name}_{exam_mode}"
+    else:
+        if not user_name:
+            st.info("请在左侧边栏填写姓名。")
+            st.stop()
+        user_key = f"{user_name}_教师"
+        exam_mode = "教师"
     st.session_state['user_key'] = user_key
     st.session_state['temp_name'] = user_name
     st.session_state['exam_mode'] = exam_mode
@@ -518,5 +471,9 @@ def main_app():
 # === 6. 程序入口 ===
 if __name__ == "__main__":
     authentication()
-    subject_setup()
-    main_app()
+    if str(st.session_state.get('user_key', '')).endswith("_教师"):
+        import teacher
+        teacher.run_teacher_app()
+    else:
+        subject_setup()
+        main_app()
